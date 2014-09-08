@@ -1,0 +1,7 @@
+<launch>
+    <!-- people_tracker -->
+    <node pkg="morse_people_tracker" type="tracker.py" name="people_tracker"/>
+
+    <!-- log -->
+    <node pkg="morse_people_tracker" type="log.py" name="log"/>
+</launch>

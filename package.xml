@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package>
+  <name>morse_people_tracker</name>
+  <version>0.0.1</version>
+  <description>The morse_people_tracker package</description>
+
+  <maintainer email="fxj345@cs.bham.ac.uk">fxj345</maintainer>
+
+  <license>MIT</license>
+
+  <url type="website">http://www.strands-project.eu</url>
+
+  <author email="fxj345@cs.bham.ac.uk">Ferdian Jovan</author> -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>mongodb_store</build_depend>
+  <build_depend>rosgraph</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>strands_perception_people_msgs</build_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>mongodb_store</run_depend>
+  <run_depend>rosgraph</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>strands_perception_people_msgs</run_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- You can specify that this package is a metapackage here: -->
+    <!-- <metapackage/> -->
+
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>
