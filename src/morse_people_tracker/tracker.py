@@ -19,19 +19,17 @@ human_poses = []
 class Human_Pose:
     counter = 0
 
-    def __init__(self, name, x_offset = 0.0, y_offset = 0.0):
+    def __init__(self, name):
         self.name = name 
         self.index = Human_Pose.counter 
         self.uuids = str(rospy.Time.now()) + '-' + name + '-' + str(self.index)
         self.pose = Pose()
         Human_Pose.counter += 1
-        self.x_off = x_offset
-        self.y_off = y_offset
+        self.pose_obtained = False
 
     def callback(self, data):
-        data.pose.position.x += self.x_off
-        data.pose.position.y += self.y_off
         self.pose = data.pose 
+        self.pose_obtained = True
 
 
 def semcam_callback(data):
@@ -52,9 +50,6 @@ def semcam_callback(data):
         if name != '':
             for i in human_poses:
                 if i.name == name:
-                    #temp = i
-                    #temp.pose = pose
-                    #detected_human_poses.append(temp)
                     detected_human_poses.append(i)
                     break
         
@@ -62,25 +57,32 @@ def semcam_callback(data):
         index_name = data.find("name")
 
 
-def people_tracker(x_offset = 0.0, y_offset = 0.0):
+def people_tracker():
     global human_poses, detected_human_poses
     # add robot pose and listen to robot/pose in strands_morse bham_cs_morse (cs_lg.py)
-    robot_pose = Human_Pose('robot_pose', x_offset, y_offset)
+    robot_pose = Human_Pose('robot_pose')
     rospy.Subscriber('/robot_pose/', PoseStamped, robot_pose.callback)
     # subscribe to semcam to get pose recorded by semantic camera
     rospy.Subscriber('/semcam', String, semcam_callback)
     
-    # subscribe to human pose from strands_morse bham_cs_morse (cs_lg.py) where the name format for
-    # each human is human[number]/pose[number]
+    # subscribe to human pose from strands_morse bham_cs_morse (cs_lg.py) where
+    # the name format for each human is human[number]/pose[number]
     master = rosgraph.masterapi.Master('/rostopic')
     for i in master.getPublishedTopics('/'):
         matchObj = re.search(r'human([0-9]+)/pose\1', i[0], re.M)
         if matchObj:
             name = i[0]
-            human_pose = Human_Pose(name[1:name[1:].find("/")+1],x_offset,y_offset) 
+            human_pose = Human_Pose(name[1:name[1:].find("/")+1]) 
             human_poses.append(human_pose)
             rospy.Subscriber(i[0], PoseStamped, human_pose.callback)
 
+    # Waiting until all humans received initial pose information
+    all_poses_obtained = False
+    while not all_poses_obtained:
+        all_poses_obtained = True
+        for i in human_poses:
+            all_poses_obtained &= i.pose_obtained 
+        
     # publish pedestrian locations from global perspective and robot's
     # perspective
     pub = rospy.Publisher('morse_people_tracker', PeopleTracker, queue_size=10)
@@ -129,8 +131,6 @@ def people_tracker(x_offset = 0.0, y_offset = 0.0):
 
 if __name__ == '__main__':
     rospy.init_node('morse_people_tracker', anonymous=True)
-    #x = rospy.get_param("~x_offset", 19.482)
-    #y = rospy.get_param("~y_offset", -8.596)
     try:
         people_tracker()
     except rospy.ROSInterruptException: pass

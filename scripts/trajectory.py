@@ -195,9 +195,7 @@ class TrajectoryAnalyzer():
 
         line_marker.points = []
 
-        MOD  = 1
         for i, point in enumerate(traj.pose):
-            if i % MOD == 0:
                 x = point['position']['x']
                 y = point['position']['y']
                 p = Point()
@@ -206,10 +204,11 @@ class TrajectoryAnalyzer():
                 line_marker.points.append(p)
 
         line_marker.colors = []
+        val = 1
         for i, vel in enumerate(traj.vel):
-            if i % MOD == 0:
                 color = ColorRGBA()
-                val = vel / traj.max_vel
+                if traj.max_vel != 0:
+                    val = vel / traj.max_vel
                 color.r = r_func(val)
                 color.g = g_func(val)
                 color.b = b_func(val)
