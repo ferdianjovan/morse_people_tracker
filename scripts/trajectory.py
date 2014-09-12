@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest("human_trajectory_analyzer")
+import roslib#; roslib.load_manifest("human_trajectory_analyzer")
 import rospy
 import pymongo
 import random
 from visualization_msgs.msg import Marker, InteractiveMarkerControl
 from interactive_markers.interactive_marker_server import *
+from tf.transformations import quaternion_about_axis, quaternion_multiply
 
 from geometry_msgs.msg import Pose, Point
 from std_msgs.msg import ColorRGBA
@@ -64,10 +65,18 @@ class Trajectory:
         self.length = 0.0
         
     def append_pose(self, pose, secs, nsecs):
-        x = pose['position']['y'] + 4.15 
-        y = pose['position']['x'] - 3.65
-        pose['position']['x'] = -1 * x
-        pose['position']['y'] = y
+        x = pose['position']['x']
+        pose['position']['x'] = -pose['position']['y'] - 4.1 
+        pose['position']['y'] = x - 3.75
+
+        oldq = [pose['orientation']['x'], pose['orientation']['y'],
+                pose['orientation']['z'], pose['orientation']['w']]
+        rotq = quaternion_about_axis(1.57, [0,0,1])
+        newq = quaternion_multiply(oldq, rotq)
+        pose['orientation']['x'] = newq[0]
+        pose['orientation']['y'] = newq[1]
+        pose['orientation']['z'] = newq[2]
+        pose['orientation']['w'] = newq[3]
         self.pose.append(pose)
         self.secs.append(secs)
         self.nsecs.append(nsecs)
@@ -194,7 +203,6 @@ class TrajectoryAnalyzer():
         # line_marker.color.a = 1.0
 
         line_marker.points = []
-
         for i, point in enumerate(traj.pose):
                 x = point['position']['x']
                 y = point['position']['y']
@@ -230,11 +238,6 @@ class TrajectoryAnalyzer():
 
 
 if __name__=="__main__":
-
-    parser = argparse.ArgumentParser(prog='trajectory')
-                        
-    args = parser.parse_args()
-    
     rospy.init_node("traj")
     rospy.loginfo("Running Trajectory Analyzer")
     ta = TrajectoryAnalyzer()
@@ -249,7 +252,3 @@ if __name__=="__main__":
     ta.visualize_trajectories_robot()
 
     print 'No more trajectories.'    
-    #rospy.spin()
-   
-
-
